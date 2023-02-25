@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+
+  contacts_service:
+    image: contacts_service
+    container_name: contacts_service
+    build:
+      context: .
+      dockerfile: ./contacts_service/Dockerfile
+    restart: always
+    ports:
+      - ${SERVICE_PORT}:${SERVICE_PORT}
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
