@@ -2,7 +2,9 @@ package startup
 
 import (
 	"contacts_service/controller"
+	"contacts_service/domain"
 	"contacts_service/repository"
+	"contacts_service/service"
 	"contacts_service/startup/config"
 	"context"
 	"fmt"
@@ -27,24 +29,23 @@ func NewServer() *Server {
 }
 
 func (server *Server) Start() {
-	//start server func
-	server.initDatabaseClient()
-	server.initContactsRepository()
-	server.initContactsService()
-	contactsController := server.initContactsController()
+	client := server.initDatabaseClient()
+	repo := server.initContactsRepository(client)
+	serv := server.initContactsService(repo)
+	contactsController := server.initContactsController(serv)
 	server.start(contactsController)
 }
 
-func (server *Server) initContactsRepository() {
-	//TODO
+func (server *Server) initContactsRepository(client *mongo.Client) domain.ContactRepository {
+	return repository.NewContactMongoRepo(client, server.config.DBName)
 }
 
-func (server *Server) initContactsService() {
-	//TODO
+func (server *Server) initContactsService(repository domain.ContactRepository) domain.ContactService {
+	return service.NewContactService(repository)
 }
 
-func (server *Server) initContactsController() *controller.ContactsController {
-	return controller.NewContactsController()
+func (server *Server) initContactsController(service domain.ContactService) *controller.ContactsController {
+	return controller.NewContactsController(service)
 }
 
 func (server *Server) initDatabaseClient() *mongo.Client {
