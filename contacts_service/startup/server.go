@@ -2,10 +2,12 @@ package startup
 
 import (
 	"contacts_service/controller"
+	"contacts_service/repository"
 	"contacts_service/startup/config"
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +28,7 @@ func NewServer() *Server {
 
 func (server *Server) Start() {
 	//start server func
+	server.initDatabaseClient()
 	server.initContactsRepository()
 	server.initContactsService()
 	contactsController := server.initContactsController()
@@ -42,6 +45,11 @@ func (server *Server) initContactsService() {
 
 func (server *Server) initContactsController() *controller.ContactsController {
 	return controller.NewContactsController()
+}
+
+func (server *Server) initDatabaseClient() *mongo.Client {
+	client := repository.GetDatabaseClient(server.config.DBPort, server.config.DBUsername, server.config.DBPassword)
+	return client
 }
 
 func (server *Server) start(controller *controller.ContactsController) {
