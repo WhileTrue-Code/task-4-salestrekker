@@ -51,16 +51,46 @@ func (repo *ContactMongoRepo) DoesContactExist(contact *domain.Input) error {
 }
 
 func (repo *ContactMongoRepo) GetAllContacts() (contacts *domain.Output, error error) {
-	//TODO implement me
-	panic("implement me")
+	cursor, err := repo.dbCollection.Find(context.TODO(), bson.D{{}})
+	defer cursor.Close(context.TODO())
+
+	if err != nil {
+		log.Printf("Error in getting all contacts from database because of: %s", err)
+		return nil, nil
+	}
+
+	return decodeCollect(cursor)
 }
 
 func (repo *ContactMongoRepo) GetOneContactByID(id primitive.ObjectID) (contact *domain.Input, error error) {
-	//TODO implement me
-	panic("implement me")
+	mongoResult := repo.dbCollection.FindOne(context.TODO(), bson.M{"_id": id})
+
+	var result domain.Input
+	err := mongoResult.Decode(&result)
+	if err != nil {
+		log.Printf("Error in getting contact by ID from database because of: %s", err)
+		return nil, fmt.Errorf(errors.ContactNotFoundError)
+	}
+
+	return &result, nil
 }
 
 func (repo *ContactMongoRepo) DeleteOneContactByID(id primitive.ObjectID) (error error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func decodeCollect(cursor *mongo.Cursor) (contacts *domain.Output, err error) {
+	var contactList []domain.Input
+	for cursor.Next(context.TODO()) {
+		var contact domain.Input
+		err = cursor.Decode(&contact)
+		if err != nil {
+			return
+		}
+		contactList = append(contactList, contact)
+	}
+	contacts = &domain.Output{Results: contactList}
+	err = cursor.Err()
+	return
 }

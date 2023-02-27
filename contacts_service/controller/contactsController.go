@@ -19,6 +19,8 @@ func NewContactsController(service domain.ContactService) *ContactsController {
 
 func (controller *ContactsController) Init(router *mux.Router) {
 	router.HandleFunc("/update", controller.CreateContact).Methods("POST")
+	router.HandleFunc("/{id}", controller.GetContactByID).Methods("GET")
+	router.HandleFunc("/", controller.GetAllContacts).Methods("GET")
 	http.Handle("/", router)
 }
 
@@ -28,7 +30,7 @@ func (controller *ContactsController) CreateContact(writer http.ResponseWriter, 
 	err := json.NewDecoder(request.Body).Decode(&contact)
 	if err != nil {
 		log.Printf("Error in request body json decoding: %s", err)
-		writer.WriteHeader(http.StatusBadRequest)
+		http.Error(writer, errors.BadRequestMsg, http.StatusBadRequest)
 		return
 	}
 
@@ -45,5 +47,27 @@ func (controller *ContactsController) CreateContact(writer http.ResponseWriter, 
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	return
+}
+
+func (controller *ContactsController) GetContactByID(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+
+	id := vars["id"]
+	contact, err := controller.service.GetOneContactByID(id)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	jsonResponse(contact, writer)
+}
+
+func (controller *ContactsController) GetAllContacts(writer http.ResponseWriter, request *http.Request) {
+	contacts, err := controller.service.GetAllContacts()
+	if err != nil {
+		http.Error(writer, errors.ServerInternalErrorMsg, http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse(contacts, writer)
 }

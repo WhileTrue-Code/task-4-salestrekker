@@ -35,13 +35,17 @@ func (service *ContactService) CreateContact(contact *domain.Input) error {
 }
 
 func (service *ContactService) GetAllContacts() (contacts *domain.Output, error error) {
-	//TODO implement me
-	panic("implement me")
+	return service.repository.GetAllContacts()
 }
 
 func (service *ContactService) GetOneContactByID(id string) (contact *domain.Input, error error) {
-	//TODO implement me
-	panic("implement me")
+	primitiveID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Printf("Error in parsing hex string to primitive.ObjectID because of: %s", err)
+		return nil, fmt.Errorf(errors.WrongIdFormatError)
+	}
+
+	return service.repository.GetOneContactByID(primitiveID)
 }
 
 func (service *ContactService) DeleteOneContactByID(id string) (error error) {
