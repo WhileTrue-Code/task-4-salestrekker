@@ -2,7 +2,10 @@ package service
 
 import (
 	"contacts_service/domain"
+	"contacts_service/errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 )
 
 type ContactService struct {
@@ -15,6 +18,19 @@ func NewContactService(repository domain.ContactRepository) *ContactService {
 
 func (service *ContactService) CreateContact(contact *domain.Input) error {
 	contact.ID = primitive.NewObjectID()
+
+	err := validateFields(contact)
+	if err != nil {
+		log.Println("Error in validating fields of contact object: %s", err)
+		return err
+	}
+
+	err = service.repository.DoesContactExist(contact)
+	if err != nil {
+		log.Println("Error in getting contact existing information: %s", err)
+		return err
+	}
+
 	return service.repository.CreateContact(contact)
 }
 
@@ -31,4 +47,12 @@ func (service *ContactService) GetOneContactByID(id string) (contact *domain.Inp
 func (service *ContactService) DeleteOneContactByID(id string) (error error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func validateFields(contact *domain.Input) error {
+	if contact.FirstName == "" || contact.LastName == "" || contact.Telephone == "" {
+		return fmt.Errorf(errors.EmptyFieldError)
+	}
+
+	return nil
 }

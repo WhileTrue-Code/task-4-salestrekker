@@ -2,7 +2,10 @@ package repository
 
 import (
 	"contacts_service/domain"
+	"contacts_service/errors"
 	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
@@ -31,6 +34,20 @@ func (repo *ContactMongoRepo) CreateContact(contact *domain.Input) error {
 	}
 	log.Printf("Inserted id is: %s", result.InsertedID)
 	return nil
+}
+
+func (repo *ContactMongoRepo) DoesContactExist(contact *domain.Input) error {
+	mongoResult := repo.dbCollection.FindOne(context.TODO(), bson.M{"firstName": contact.FirstName,
+		"lastName":  contact.LastName,
+		"telephone": contact.Telephone})
+
+	var result domain.Input
+	err := mongoResult.Decode(&result)
+	if err != nil {
+		return nil
+	}
+
+	return fmt.Errorf(errors.ContactAlreadyExist)
 }
 
 func (repo *ContactMongoRepo) GetAllContacts() (contacts *domain.Output, error error) {
