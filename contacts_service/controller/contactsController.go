@@ -2,6 +2,7 @@ package controller
 
 import (
 	"contacts_service/domain"
+	"contacts_service/errors"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
@@ -24,7 +25,6 @@ func (controller *ContactsController) Init(router *mux.Router) {
 func (controller *ContactsController) CreateContact(writer http.ResponseWriter, request *http.Request) {
 
 	var contact domain.Input
-
 	err := json.NewDecoder(request.Body).Decode(&contact)
 	if err != nil {
 		log.Printf("Error in request body json decoding: %s", err)
@@ -34,8 +34,13 @@ func (controller *ContactsController) CreateContact(writer http.ResponseWriter, 
 
 	err = controller.service.CreateContact(&contact)
 	if err != nil {
-		log.Printf("Error in creating contact because of: %s", err)
-		writer.WriteHeader(http.StatusInternalServerError)
+		if err.Error() == errors.EmptyFieldError {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+		} else if err.Error() == errors.ContactAlreadyExist {
+			http.Error(writer, err.Error(), http.StatusNotAcceptable)
+		} else {
+			http.Error(writer, errors.ServerInternalErrorMsg, http.StatusInternalServerError)
+		}
 		return
 	}
 
