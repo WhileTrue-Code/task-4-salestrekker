@@ -10,5 +10,5 @@ type Input struct {
 }
 
 type Output struct {
-	Results []Input
+	Results []Input `json:"results"`
 }
