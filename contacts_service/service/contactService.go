@@ -28,7 +28,6 @@ func (service *ContactService) CreateContact(contact *domain.Input) error {
 	contact.Deleted = false
 	exist, err := service.repository.DoesContactExist(contact)
 	if err != nil && err.Error() == errors.ContactAlreadyExist {
-		log.Println("Error in getting contact existing information: %s", err)
 		return err
 	} else if err != nil && err.Error() == errors.DeletedContactMsg {
 		err := service.repository.RecoverContact(exist)

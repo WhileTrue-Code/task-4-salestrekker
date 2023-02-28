@@ -56,7 +56,11 @@ func (controller *ContactsController) GetContactByID(writer http.ResponseWriter,
 	id := vars["id"]
 	contact, err := controller.service.GetOneContactByID(id)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusNotFound)
+		if err.Error() == errors.WrongIdFormatError {
+			http.Error(writer, err.Error(), http.StatusNotAcceptable)
+		} else {
+			http.Error(writer, err.Error(), http.StatusNotFound)
+		}
 		return
 	}
 
@@ -68,6 +72,10 @@ func (controller *ContactsController) GetAllContacts(writer http.ResponseWriter,
 	if err != nil {
 		http.Error(writer, errors.ServerInternalErrorMsg, http.StatusInternalServerError)
 		return
+	}
+
+	if contacts.Results == nil {
+		contacts.Results = make([]domain.Input, 0)
 	}
 
 	jsonResponse(contacts, writer)
@@ -86,10 +94,8 @@ func (controller *ContactsController) DeleteContactByID(writer http.ResponseWrit
 		} else {
 			http.Error(writer, errors.ServerInternalErrorMsg, http.StatusInternalServerError)
 		}
-
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	return
 }
