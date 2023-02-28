@@ -7,4 +7,5 @@ var (
 	ContactNotFoundError   = "contact with this id not found"
 	WrongIdFormatError     = "id format is wrong, check id"
 	BadRequestMsg          = "bad request format"
+	DeletedContactMsg      = "this contact was deleted"
 )

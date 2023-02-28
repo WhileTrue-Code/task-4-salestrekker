@@ -7,6 +7,7 @@ type Input struct {
 	FirstName string             `bson:"firstName" json:"firstName"`
 	LastName  string             `bson:"lastName" json:"lastName"`
 	Telephone string             `bson:"telephone" json:"telephone"`
+	Deleted   bool               `bson:"deleted" json:"deleted"`
 }
 
 type Output struct {

@@ -25,10 +25,17 @@ func (service *ContactService) CreateContact(contact *domain.Input) error {
 		return err
 	}
 
-	err = service.repository.DoesContactExist(contact)
-	if err != nil {
+	contact.Deleted = false
+	exist, err := service.repository.DoesContactExist(contact)
+	if err != nil && err.Error() == errors.ContactAlreadyExist {
 		log.Println("Error in getting contact existing information: %s", err)
 		return err
+	} else if err != nil && err.Error() == errors.DeletedContactMsg {
+		err := service.repository.RecoverContact(exist)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	return service.repository.CreateContact(contact)
@@ -39,18 +46,23 @@ func (service *ContactService) GetAllContacts() (contacts *domain.Output, error 
 }
 
 func (service *ContactService) GetOneContactByID(id string) (contact *domain.Input, error error) {
-	primitiveID, err := primitive.ObjectIDFromHex(id)
+	primitiveID, err := getPrimitiveIDFromHex(id)
 	if err != nil {
-		log.Printf("Error in parsing hex string to primitive.ObjectID because of: %s", err)
-		return nil, fmt.Errorf(errors.WrongIdFormatError)
+		log.Println("getPrimitiveIDFromHex parsing error got")
+		return nil, err
 	}
 
-	return service.repository.GetOneContactByID(primitiveID)
+	return service.repository.GetOneContactByID(*primitiveID)
 }
 
 func (service *ContactService) DeleteOneContactByID(id string) (error error) {
-	//TODO implement me
-	panic("implement me")
+	primitiveID, err := getPrimitiveIDFromHex(id)
+	if err != nil {
+		log.Println("getPrimitiveIDFromHex parsing error got")
+		return err
+	}
+
+	return service.repository.DeleteOneContactByID(*primitiveID)
 }
 
 func validateFields(contact *domain.Input) error {
@@ -59,4 +71,14 @@ func validateFields(contact *domain.Input) error {
 	}
 
 	return nil
+}
+
+func getPrimitiveIDFromHex(id string) (*primitive.ObjectID, error) {
+	primitiveID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Printf("Error in parsing hex string to primitive.ObjectID because of: %s", err)
+		return nil, fmt.Errorf(errors.WrongIdFormatError)
+	}
+
+	return &primitiveID, nil
 }

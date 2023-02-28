@@ -19,8 +19,9 @@ func NewContactsController(service domain.ContactService) *ContactsController {
 
 func (controller *ContactsController) Init(router *mux.Router) {
 	router.HandleFunc("/update", controller.CreateContact).Methods("POST")
-	router.HandleFunc("/{id}", controller.GetContactByID).Methods("GET")
-	router.HandleFunc("/", controller.GetAllContacts).Methods("GET")
+	router.HandleFunc("/get/{id}", controller.GetContactByID).Methods("GET")
+	router.HandleFunc("/list", controller.GetAllContacts).Methods("GET")
+	router.HandleFunc("/delete/{id}", controller.DeleteContactByID).Methods("DELETE")
 	http.Handle("/", router)
 }
 
@@ -70,4 +71,25 @@ func (controller *ContactsController) GetAllContacts(writer http.ResponseWriter,
 	}
 
 	jsonResponse(contacts, writer)
+}
+
+func (controller *ContactsController) DeleteContactByID(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+
+	id := vars["id"]
+	err := controller.service.DeleteOneContactByID(id)
+	if err != nil {
+		if err.Error() == errors.ContactNotFoundError {
+			http.Error(writer, err.Error(), http.StatusNotFound)
+		} else if err.Error() == errors.WrongIdFormatError {
+			http.Error(writer, err.Error(), http.StatusNotAcceptable)
+		} else {
+			http.Error(writer, errors.ServerInternalErrorMsg, http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	return
 }
