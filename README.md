@@ -1,6 +1,6 @@
 # task-4-salestrekker
 
-I was used Golang,Docker and MongoDB to finish this task. I know there are one "mistake". I set .env variables DB_USERNAME and DB_PASSWORD,
+I was used Golang,Docker and MongoDB to finish this task. I know there is one "mistake". I set .env variables DB_USERNAME and DB_PASSWORD,
 because I want to imitate getting that data from configuring microservice which we can use in system
 to get important parameters for regular service working.
 
