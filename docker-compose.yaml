@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+
+  contacts_service:
+    image: contacts_service
+    container_name: contacts_service
+    build:
+      context: .
+      dockerfile: ./contacts_service/Dockerfile
+    restart: always
+    ports:
+      - ${SERVICE_PORT}:${SERVICE_PORT}
+    environment:
+      SERVICE_PORT: ${SERVICE_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+    networks:
+      - network
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok'
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - mongo_store:/data/db
+    networks:
+      - network
+
+volumes:
+  mongo_store:
+
+networks:
+  network:
+    driver: bridge
