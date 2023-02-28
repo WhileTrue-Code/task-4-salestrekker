@@ -1,7 +1,7 @@
 # task-4-salestrekker
 
 I was used Golang,Docker and MongoDB to finish this task. I know there is one "mistake". I set .env variables DB_USERNAME and DB_PASSWORD,
-because I want to imitate getting that data from configuring microservice which we can use in system
+because I wanted to imitate getting that data from configuring microservice which we can use in system
 to get important parameters for regular service working.
 
 /upload route accepts Input json as specification determined. if contact with specified information already exist in database but logically deleted it will be undeleted.
